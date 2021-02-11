@@ -15,14 +15,32 @@ paddle_h = 12
 brick_w = ball_size * 5
 brick_h = 15
 speed = 30
+black = (0,0,0)
+white = (255,255,255)
+grey = (150,150,150)
+blue = (0,0,255)
+red = (250,0,0)
+brick_list = pygame.sprite.Group()
+all_sprites = pygame.sprite.Group()
 
 pygame.init()
-d = pygame.display.set_mode((display_w, display_h))
+display = pygame.display.set_mode((display_w, display_h))
 pygame.display.set_caption("BreakOut by Nick Colonna")
 pygame.display.update()
-d.fill((0,0,0))
+display.fill(black)
 clock = pygame.time.Clock()
 
+class Block(pygame.sprite.Sprite):
+	def __init__(self, color, width, height):
+		super().__init__()
+
+		self.image = pygame.Surface([width, height])
+		self.image.fill(white)
+		self.image.set_colorkey(white)
+
+		pygame.draw.rect(self.image, color, [0,0, width, height])
+
+		self.rect = self.image.get_rect()
 
 """
 Function to help create all the bricks to start the game
@@ -40,7 +58,12 @@ def create_bricks():
 		count = 0
 		while count < num_bricks:
 			i += 10
-			pygame.draw.rect(d, (0,0,250), (i, 30+brick_h*j+15*j, brick_w, brick_h))
+			brick = Block(blue, brick_w, brick_h)
+			brick.rect.x = i
+			brick.rect.y = 30 + brick_h*j + 15*j
+			brick_list.add(brick)
+			all_sprites.add(brick)
+			#pygame.draw.rect(display, blue, (i, 30+brick_h*j+15*j, brick_w, brick_h))
 			i += brick_w
 			count += 1
 
@@ -57,28 +80,40 @@ def play_game():
 	ball_dx = 0
 	ball_dy = 0
 
+	#create the user paddle
+	paddle = Block(grey, paddle_w, paddle_h)
+	paddle.rect.x = display_w/2 - paddle_w/2
+	paddle.rect.y = display_h - ball_size*4
+	all_sprites.add(paddle)
+
+	#create the ball
+	ball = Block(red, ball_size, ball_size)
+	ball.rect.x = display_w/2 - ball_size/2
+	ball.rect.y = display_h - ball_size*5
+	all_sprites.add(ball)
+
+	create_bricks()
+
 	while game_over == False:
 
 		for event in pygame.event.get():
-			# end game if 'X' at top of window is clicked
-			if event.type == pygame.QUIT:
+			if event.type == pygame.QUIT:	# exit game if 'X' at top of window is clicked
 				game_over = True
-			elif event.type == pygame.KEYDOWN:
+			elif event.type == pygame.KEYDOWN:	# look for left or right arrow key clicks
 				if event.key == pygame.K_LEFT:
-					paddle_x += -10
+					paddle.rect.x += -10
 				elif event.key == pygame.K_RIGHT:
-					paddle_x += 10
+					paddle.rect.x += 10
 
 
 		ball_x += ball_dx
 		ball_y += ball_dy
-		pygame.draw.rect(d, (150,150,150), (paddle_x, display_h - ball_size*4, paddle_w, paddle_h))		#draw paddle
-		pygame.draw.rect(d, (250,0,0), (ball_x, ball_y, ball_size, ball_size))	#draw ball
 
-		create_bricks()	
+		all_sprites.draw(display)
 
 		pygame.display.update()
-		d.fill((0,0,0))
+		display.fill(black)
 		clock.tick(speed)
+
 
 play_game()
