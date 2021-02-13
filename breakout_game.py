@@ -22,6 +22,7 @@ white = (255,255,255)
 grey = (150,150,150)
 blue = (0,0,255)
 red = (250,0,0)
+cyan = (0,255,255)
 brick_list = pygame.sprite.Group()
 all_sprites = pygame.sprite.Group()
 
@@ -32,6 +33,7 @@ pygame.display.update()
 display.fill(black)
 clock = pygame.time.Clock()
 font_style = pygame.font.SysFont("comicsansms", 20)
+
 
 class Block(pygame.sprite.Sprite):
 	def __init__(self, color, width, height):
@@ -49,11 +51,6 @@ class Block(pygame.sprite.Sprite):
 Function to help create all the bricks to start the game
 """
 def create_bricks():
-	# we need to draw all the bricks here
-	# we need to store the dimensions of the bricks in some sort of data structure to enable checking if collide
-	
-
-	#THIS IS A VERY NAIVE WAY TO DISPLAY THE BLOCKS, NEEDS IMPOVEMENT
 	num_bricks = display_w // (brick_w + 10)
 
 	for j in range(0, 5):
@@ -66,7 +63,6 @@ def create_bricks():
 			brick.rect.y = 30 + brick_h*j + 15*j
 			brick_list.add(brick)
 			all_sprites.add(brick)
-			#pygame.draw.rect(display, blue, (i, 30+brick_h*j+15*j, brick_w, brick_h))
 			i += brick_w
 			count += 1
 
@@ -77,6 +73,7 @@ def get_score(score):
 	score_message = font_style.render("Score: {}".format(score), True, white)
 	display.blit(score_message, [5 , 1])
 
+
 """
 Main game function containing game loop
 
@@ -84,12 +81,15 @@ The core functionality of the game is run here
 """
 def play_game():
 	game_over = False
+	game_end = False
+	outcome = False
 	paddle_x = display_w/2 - paddle_w/2
 	ball_x = display_w/2 - ball_size/2
 	ball_y = display_h - ball_size*5
 	ball_dx = random.choice([random.randint(-ball_move, -1), random.randint(1, ball_move)])
 	ball_dy = -ball_move
 	score = 0
+	num_lives = 2
 
 	#create the user paddle
 	paddle = Block(grey, paddle_w, paddle_h)
@@ -108,6 +108,30 @@ def play_game():
 
 	# Game Loop
 	while game_over == False:
+		# Loser loop runs when user runs out of lives
+		while game_end == True:
+			display.fill(black)
+			get_score(score)
+			if outcome == True:
+				outcome_message = font_style.render("WINNER!", True, red)
+			else:
+				outcome_message = font_style.render("LOSER!", True, red)
+			play_again_message = font_style.render("Press Q to Quit or SPACE to Play Again", True, cyan)
+			display.blit(outcome_message, [160, display_h / 2 - 25])
+			display.blit(play_again_message, [15, display_h / 2])
+			pygame.display.update()
+			for event in pygame.event.get():
+				if event.type == pygame.QUIT:   # exit game if 'X' at top of window is clicked
+					game_over = True
+					game_end = False
+				if event.type == pygame.KEYDOWN:
+					if event.key == pygame.K_q: # quit game if Q pressed
+						game_over = True
+						game_end = False
+					elif event.key == pygame.K_SPACE: # restart game is Space pressed
+						brick_list.empty()
+						all_sprites.empty()
+						play_game()
 
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:	# exit game if 'X' at top of window is clicked
@@ -130,6 +154,14 @@ def play_game():
 			ball_dy *= -1
 			score += len(bricks_hit)
 
+		if len(brick_list) == 0:
+			win_message = font_style.render("WINNER!", True, red)
+			display.blit(win_message, [160, display_h / 2 - 25])
+			display.blit(play_again_message, [15, display_h / 2])
+			pygame.display.update()
+			game_end = True
+			outcome = True
+
 		# check if ball hit paddle
 		paddle_hit = pygame.sprite.collide_rect(ball, paddle)
 		if paddle_hit == True:
@@ -142,12 +174,25 @@ def play_game():
 			ball_dx *= -1
 		if ball.rect.y + ball_dy <= 0:
 			ball_dy *= -1
-		
+		elif ball.rect.y + ball_dy >= (display_h - ball_size):
+			num_lives -= 1
+			if num_lives == 0:	# game over if no lives left
+				game_end = True
+				outcome = False
+			else:		# restart ball and paddle if still have lives remaining
+				ball.rect.x = display_w/2 - ball_size/2
+				ball.rect.y = display_h - ball_size*5
+				paddle.rect.x = display_w/2 - paddle_w/2
+				paddle.rect.y = display_h - ball_size*4
+				ball_dx = random.choice([random.randint(-ball_move, -1), random.randint(1, ball_move)])
+				ball_dy = -ball_move
+				pygame.display.update()
+
+
 		ball.rect.x += ball_dx
 		ball.rect.y += ball_dy
 
 		all_sprites.draw(display)
-
 
 		get_score(score)
 		pygame.display.update()
