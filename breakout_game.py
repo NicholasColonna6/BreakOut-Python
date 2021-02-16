@@ -35,6 +35,8 @@ pygame.display.update()
 display.fill(black)
 clock = pygame.time.Clock()
 font_style = pygame.font.SysFont("comicsansms", 20)
+play_again_message = font_style.render("Press Q to Quit or SPACE to Play Again", True, cyan)
+
 
 """
 Class is derived from the Sprite class from pygame
@@ -56,7 +58,7 @@ Function to help create all the bricks
 """
 def create_bricks():
     num_bricks = display_w // (brick_w + 10)    # bricks that can fit in one row
-
+    
     for row in range(0, 5):   # 5 rows of bricks
         x = 15  #x coordinate of brick
         count = 0
@@ -121,10 +123,9 @@ def play_game():
             display.fill(black)
             get_score(score)
             if outcome == True:
-                outcome_message = font_style.render("WINNER!", True, red)
+                outcome_message = font_style.render("WINNER!", True, green)
             else:
                 outcome_message = font_style.render("LOSER!", True, red)
-            play_again_message = font_style.render("Press Q to Quit or SPACE to Play Again", True, cyan)
             display.blit(outcome_message, [160, display_h / 2 - 25])
             display.blit(play_again_message, [15, display_h / 2])
             pygame.display.update()
@@ -170,11 +171,8 @@ def play_game():
             ball_dy *= -1
             score += len(bricks_hit)
 
+        # if brick list is empty, player is a winner!
         if len(brick_list) == 0:
-            win_message = font_style.render("WINNER!", True, green)
-            display.blit(win_message, [160, display_h / 2 - 25])
-            display.blit(play_again_message, [15, display_h / 2])
-            pygame.display.update()
             game_end = True
             outcome = True
 
