@@ -1,6 +1,6 @@
 # BreakOut - Python
 
-### This program is my implementation of the game BreakOut (also known as BrickBreaker) leveraging the Pygame module in Python.
+#### This program is my implementation of the game BreakOut (also known as BrickBreaker) leveraging the Pygame module in Python.
 
 
 The objective of this game is simple: use the paddle to hit the ball into all bricks without the ball falling below the paddle and out of the display. If the ball falls off the screen twice, it's game over!
